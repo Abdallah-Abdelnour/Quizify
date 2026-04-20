@@ -1,0 +1,92 @@
+"""
+Module timer.py
+"""
+
+import os
+import time
+# import msvcrt
+import os
+
+if os.name == "nt":
+    import msvcrt
+if os.name == "nt":
+    import msvcrt
+
+
+def vider_buffer_clavier():
+    """
+    Vide toutes les touches restantes dans le buffer clavier
+    """
+    while msvcrt.kbhit():
+        msvcrt.getwch()
+
+
+def input_propre(message=""):
+    """
+    Vide le buffer clavier avant un input classique
+    """
+    vider_buffer_clavier()
+    return input(message).strip()
+
+
+def demander_reponse_avec_timer(question, options, temps=15, numero=1):
+    """
+    Affiche une question avec un vrai timer.
+    """
+    reponse = ""
+    debut = time.time()
+    dernier_restant = None
+    ancienne_reponse = None
+
+    # Nettoyer avant la question
+    vider_buffer_clavier()
+
+    while True:
+        ecoule = int(time.time() - debut)
+        restant = temps - ecoule
+
+        if restant < 0:
+            print("\n Temps écoulé !")
+            time.sleep(0.2)
+            vider_buffer_clavier()
+            return None
+
+        # Réaffichage seulement si le temps ou la réponse change
+        if restant != dernier_restant or reponse != ancienne_reponse:
+            os.system("cls")
+            print(f" Temps restant : {restant}s")
+            print(f"Question {numero}: {question}")
+            for i, option in enumerate(options, start=1):
+                print(f"{i}. {option}")
+            print(f"Votre réponse : {reponse}", end="", flush=True)
+
+            dernier_restant = restant
+            ancienne_reponse = reponse
+
+        if msvcrt.kbhit():
+            touche = msvcrt.getwch()
+
+            # Entrée = valider
+            if touche == "\r":
+                reponse_finale = reponse.strip().lower()
+
+                # Attendre un peu puis vider les Entrées restantes
+                time.sleep(0.2)
+                vider_buffer_clavier()
+
+                print()
+                return reponse_finale
+
+            # Retour arrière
+            elif touche == "\b":
+                reponse = reponse[:-1]
+
+            # Touches spéciales (flèches, F1...)
+            elif touche in ("\x00", "\xe0"):
+                if msvcrt.kbhit():
+                    msvcrt.getwch()
+
+            else:
+                reponse += touche
+
+        time.sleep(0.03)

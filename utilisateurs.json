@@ -1,0 +1,72 @@
+"""
+Module Timer
+"""
+
+import os
+import platform
+import signal
+import time
+
+
+SYSTEME = platform.system()
+
+
+class TimeoutException(Exception):
+    """
+    Exception levée quand le temps est écoulé
+    """
+
+
+def gerer_timeout(signum, frame):
+    """
+    Fonction appelée quand le temps est écoulé
+    """
+    raise TimeoutException
+
+
+def input_propre(message=""):
+    """
+    Input classique propre
+    """
+    return input(message).strip()
+
+
+def demander_reponse_avec_timer(question, options, temps=15, numero=1):
+    """
+    Affiche la question avec timer.
+    L'utilisateur répond avec la réponse complète.
+    Retourne None si le temps est écoulé.
+    Compatible Linux / Windows.
+    """
+    os.system("cls" if SYSTEME == "Windows" else "clear")
+
+    print(f"⏳ Temps restant : {temps}s")
+    print(f"Question {numero}: {question}")
+    for i, option in enumerate(options, start=1):
+        print(f"{i}. {option}")
+
+    print("Votre réponse : ", end="", flush=True)
+
+    # Linux / macOS
+    if SYSTEME != "Windows":
+        signal.signal(signal.SIGALRM, gerer_timeout)
+        signal.alarm(temps)
+
+        try:
+            reponse = input().strip().lower()
+            signal.alarm(0)
+            return reponse
+        except TimeoutException:
+            print("\n⏰ Temps écoulé !")
+            return None
+
+    # Windows (fallback simple sans vrai timer bloquant)
+    debut = time.time()
+    reponse = input().strip().lower()
+    ecoule = time.time() - debut
+
+    if ecoule > temps:
+        print(" Temps écoulé !")
+        return None
+
+    return reponse
